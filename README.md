@@ -1,3 +1,5 @@
 # bot-discord
 
 Bot ini dibuat dengan tujuan untuk memberikan pengalaman penggunaan yang menyenangkan kepada penggunanya. Namun, seperti halnya produk teknologi lainnya, bot ini juga belum sempurna dan kemungkinan masih terdapat beberapa bug yang perlu diperbaiki. Saya akan terus berupaya memperbaiki bot ini untuk memberikan pengalaman penggunaan yang semakin baik. Saya sangat berharap kalian menikmati pengalaman menggunakan bot ini untuk kesenangan kalian di server Discord kalian. Namun, seperti bot lainnya, mungkin ada beberapa bug atau masalah yang belum saya temukan. Jika kalian menemukan bug atau masalah, tolong laporkan di `issues` agar saya dapat memperbaikinya secepat mungkin dan memberikan pengalaman terbaik kepada pengguna kami. Terima kasih atas dukungan kalian!
+
+Source code ini hanya sebagai dasar saja dan dibuat dengan tujuan untuk membantu memulai pengembangan bot Discord. Kalian bebas untuk mengubah dan menyesuaikan sesuai kebutuhan Kalian atau bahkan mengembangkan lebih jauh lagi. Saya mengharapkan agar source code ini dapat memberikan kontribusi positif bagi pengembangan bot Discord. Selamat mencoba!
