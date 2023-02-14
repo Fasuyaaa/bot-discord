@@ -1,0 +1,147 @@
+import discord
+from discord.ext import commands
+import youtube_dl
+import requests
+
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix='?', intents=intents)
+
+queue_url = None
+
+@bot.command()
+async def play(ctx, url: str):
+    global queue_url
+    voice_channel = ctx.author.voice.channel
+    if voice_channel:
+        if ctx.voice_client:
+            queue_url = url
+            await ctx.send(f"{url} has been added to the queue.")
+        else:
+            vc = await voice_channel.connect()
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '90000',
+                }]
+            }
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                source = discord.FFmpegPCMAudio(info['url'])
+                source.on_finished_playing = lambda: vc.disconnect()
+                queue_url = None
+                vc.play(source)
+    else:
+        await ctx.send("You are not in a voice channel.")
+
+
+@bot.command()
+async def splay(ctx, *, query: str):
+    results = requests.get(f"https://www.googleapis.com/youtube/v3/search?part=snippet&q={query}&type=video&key=AIzaSyBRmFgW8Y-55qt7QdQLXkdPYvIT8JxWGh4").json()
+    if results['items']:
+        video = results['items'][0]
+        await ctx.send(f"Playing music from: {video['snippet']['title']}")
+        url = f"https://www.youtube.com/watch?v={video['id']['videoId']}"
+        await bot.get_command("play").callback(ctx, url)
+    else:
+        await ctx.send("No video found.")
+
+@bot.command()
+async def next(ctx):
+    global queue_url
+    voice_channel = ctx.author.voice.channel
+    if ctx.voice_client and queue_url:
+        if ctx.voice_client.is_connected():
+            await ctx.voice_client.disconnect()
+        if hasattr(ctx.voice_client, 'is_playing') and ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
+        await ctx.send("Playing next song in queue...")
+        vc = await voice_channel.connect()
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '90000',
+            }]
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(queue_url, download=False)
+            source = discord.FFmpegPCMAudio(info['url'])
+            queue_url = None
+            vc.play(source)
+
+@bot.command()
+async def stop(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+        await ctx.send("Music stopped.")
+    else:
+        await ctx.send("No music is being played.")
+
+@bot.command()
+async def pause(ctx):
+    if ctx.voice_client:
+        ctx.voice_client.pause()
+        await ctx.send("Music paused.")
+    else:
+        await ctx.send("No music is being played.")
+
+@bot.command()
+async def resume(ctx):
+    if ctx.voice_client:
+        ctx.voice_client.resume()
+        await ctx.send("Music resumed.")
+    else:
+        await ctx.send("No music is being paused.")
+
+
+@bot.command()
+async def author(ctx):
+    await ctx.send("Author: Fasuyaaa")
+
+@bot.command()
+async def command(ctx):
+    commands = [
+        "?play [url] - for play music from request URL",
+        "?pause - for pause music",
+        "?resume - for resume music",
+        "?stop - for stop music",
+        "?splay - for play music from request query",
+        "?author - see author bot shikimori awokwik",
+        "?next - for next queue",
+        "?command - see available commands",
+    ]
+    await ctx.send("Available commands: \n" + "\n".join(commands))
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    global queue_url
+    if member == bot.user:
+        return
+    if not before.channel and after.channel:
+        return
+    if before.channel and not after.channel:
+        if ctx.voice_client and queue_url:
+            if ctx.voice_client.is_connected():
+                await ctx.voice_client.disconnect()
+            if hasattr(ctx.voice_client, 'is_playing') and ctx.voice_client.is_playing():
+                ctx.voice_client.stop()
+            await ctx.send("Playing next song in queue...")
+            vc = await after.channel.connect()
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '90000',
+                }]
+            }
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(queue_url, download=False)
+                source = discord.FFmpegPCMAudio(info['url'])
+                queue_url = None
+                vc.play(source)
+
+bot.run("TOKEN_DISCORD")
