@@ -1,0 +1,28 @@
+import discord
+from discord.ext import commands
+import os
+import requests
+from googleapiclient.discovery import build
+
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix='?', intents=intents)
+
+# Masukkan API key dan ID Custom Search Engine
+api_key = "API_KEY"
+cx = "COSTUM_SEARCH_ENGINE_ID"
+
+@bot.event
+async def on_ready():
+    print('Bot is ready.')
+
+@bot.command(name='google')
+async def google_search(ctx, *, query):
+    # Panggil Google Custom Search API
+    resource = build("customsearch", 'v1', developerKey=api_key).cse()
+    result = resource.list(q=query, cx=cx).execute()
+
+    # Tampilkan hasil pencarian
+    for item in result['items']:
+        await ctx.send(f"{item['title']}\n{item['link']}")
+
+bot.run('TOKEN_DISCORD')
